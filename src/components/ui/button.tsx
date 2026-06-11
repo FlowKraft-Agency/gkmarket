@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -21,6 +22,9 @@ const sizes = {
   lg: "px-8 py-4 text-base",
 };
 
+const base =
+  "inline-flex items-center justify-center gap-2 rounded-md font-label font-semibold tracking-wide transition-colors disabled:pointer-events-none disabled:opacity-50";
+
 export function Button({
   variant = "primary",
   size = "md",
@@ -29,12 +33,26 @@ export function Button({
 }: ButtonProps) {
   return (
     <button
-      className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-md font-label font-semibold tracking-wide transition-colors disabled:pointer-events-none disabled:opacity-50",
-        variants[variant],
-        sizes[size],
-        className,
-      )}
+      className={cn(base, variants[variant], sizes[size], className)}
+      {...props}
+    />
+  );
+}
+
+type LinkButtonProps = React.ComponentProps<typeof Link> & {
+  variant?: "primary" | "secondary" | "ghost";
+  size?: "sm" | "md" | "lg";
+};
+
+export function LinkButton({
+  variant = "primary",
+  size = "md",
+  className,
+  ...props
+}: LinkButtonProps) {
+  return (
+    <Link
+      className={cn(base, variants[variant], sizes[size], className)}
       {...props}
     />
   );

@@ -1,4 +1,5 @@
 import {
+  boolean,
   pgEnum,
   pgTable,
   text,
@@ -6,32 +7,87 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
-// Les 4 rôles du système (cf. docs/CHANGEMENTS.md §1 : le livreur est un compte à part entière).
-// NOTE itération 1 : trancher si un utilisateur peut cumuler les rôles (acheteur + vendeur) —
-// le cas échéant, extraire vers une table de jointure user_roles.
-export const userRoleEnum = pgEnum("user_role", [
-  "buyer",
-  "seller",
-  "courier",
-  "admin",
-]);
-
+// Modèle multi-rôles (décision itération 1) : tout compte est acheteur par défaut ;
+// « vendeur » et « livreur » sont des casquettes supplémentaires activées après
+// vérification, matérialisées par l'existence d'un profil dédié.
 export const userStatusEnum = pgEnum("user_status", [
-  "pending",
   "active",
   "suspended",
   "banned",
 ]);
 
+export const profileStatusEnum = pgEnum("profile_status", [
+  "pending",
+  "approved",
+  "rejected",
+  "suspended",
+]);
+
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
-  // Lien vers Firebase Authentication (renseigné à l'itération 1)
-  firebaseUid: text("firebase_uid").unique(),
+  // Identité gérée par Firebase Authentication
+  firebaseUid: text("firebase_uid").notNull().unique(),
   email: text("email").unique(),
   phone: text("phone").unique(),
   fullName: text("full_name"),
-  role: userRoleEnum("role").notNull().default("buyer"),
-  status: userStatusEnum("status").notNull().default("pending"),
+  isAdmin: boolean("is_admin").notNull().default(false),
+  status: userStatusEnum("status").notNull().default("active"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+// Casquette vendeur — les champs KYC complets (documents, RCCM, banque/Mobile Money)
+// arrivent à l'itération 2 (module Gestion des Vendeurs).
+export const sellerProfiles = pgTable("seller_profiles", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .unique()
+    .references(() => users.id, { onDelete: "cascade" }),
+  shopName: text("shop_name"),
+  status: profileStatusEnum("status").notNull().default("pending"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+// Casquette livreur (cf. docs/CHANGEMENTS.md §1) — détails (zone, véhicule, gains)
+// au module Livraison.
+export const courierProfiles = pgTable("courier_profiles", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .unique()
+    .references(() => users.id, { onDelete: "cascade" }),
+  status: profileStatusEnum("status").notNull().default("pending"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+// Adresses de livraison (MVP n°12 — ajout/modification/suppression)
+export const addresses = pgTable("addresses", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  label: text("label"),
+  recipientName: text("recipient_name").notNull(),
+  recipientPhone: text("recipient_phone").notNull(),
+  city: text("city").notNull().default("Lomé"),
+  district: text("district"),
+  details: text("details"),
+  isDefault: boolean("is_default").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

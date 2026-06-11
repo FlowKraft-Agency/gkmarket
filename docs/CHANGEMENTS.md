@@ -24,6 +24,18 @@ Ce document consigne les changements décidés par rapport au cahier des charges
 - Nouveau périmètre : dashboard livreur, gestion des courses, gains/rémunération livreur.
 - Module 8 (Livraison) : items « Agences » (MVP n°167-169) et automatisations agence de Phase 2 → reportés.
 
+---
+
+## 2. Modèle multi-rôles : un compte, plusieurs casquettes (2026-06-11)
+
+**Décision :** un utilisateur peut cumuler les rôles. Tout compte est **acheteur par défaut** ;
+« vendeur » et « livreur » sont des **casquettes supplémentaires** activées après vérification (KYC).
+Modèle Alibaba/Amazon : un seul compte, plusieurs capacités.
+
+**Implémentation :** table `users` (identité, lien Firebase) + tables `seller_profiles` et
+`courier_profiles` (l'existence d'un profil = la casquette ; son `status` = l'état de vérification).
+L'admin est un booléen `is_admin` sur `users`.
+
 **Précisions (2026-06-10) :**
 - **Attribution des courses :** une **proposition intelligente de livreurs** est faite au vendeur (matching automatique — critères à définir : proximité, disponibilité, note, historique). Le vendeur choisit parmi les livreurs proposés.
 - **Paiement du livreur :** le livreur est **payé par le vendeur**, via le **Wallet** et le **système Escrow** (mêmes mécanismes que le reste de la plateforme). Le livreur dispose donc d'un Wallet livreur.

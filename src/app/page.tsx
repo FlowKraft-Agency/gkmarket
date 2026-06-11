@@ -1,11 +1,38 @@
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, LinkButton } from "@/components/ui/button";
 import { Card, CardSection } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { getCurrentUser } from "@/lib/auth";
 
-export default function Home() {
+export default async function Home() {
+  const user = await getCurrentUser();
+
   return (
-    <main className="mx-auto w-full max-w-(--container-page) flex-1 px-4 py-16 md:px-10">
+    <main className="mx-auto w-full max-w-(--container-page) flex-1 px-4 py-8 md:px-10">
+      {/* Navigation */}
+      <header className="flex items-center justify-between">
+        <Link href="/" className="font-display text-xl font-extrabold">
+          GK <span className="text-gold">Market</span>
+        </Link>
+        <nav className="flex items-center gap-3">
+          {user ? (
+            <LinkButton href="/compte" variant="secondary" size="sm">
+              Mon compte
+            </LinkButton>
+          ) : (
+            <>
+              <LinkButton href="/connexion" variant="ghost" size="sm">
+                Se connecter
+              </LinkButton>
+              <LinkButton href="/inscription" size="sm">
+                Créer un compte
+              </LinkButton>
+            </>
+          )}
+        </nav>
+      </header>
+
       {/* Hero */}
       <section className="flex flex-col items-center gap-6 py-16 text-center">
         <Badge variant="wholesale">MVP — Lomé</Badge>
@@ -19,9 +46,13 @@ export default function Home() {
         </p>
         <div className="flex flex-wrap items-center justify-center gap-4">
           <Button size="lg">Explorer le catalogue</Button>
-          <Button size="lg" variant="secondary">
+          <LinkButton
+            href={user ? "/compte" : "/inscription"}
+            size="lg"
+            variant="secondary"
+          >
             Devenir vendeur
-          </Button>
+          </LinkButton>
         </div>
       </section>
 
