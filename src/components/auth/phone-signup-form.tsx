@@ -11,6 +11,7 @@ import {
   type ConfirmationResult,
 } from "firebase/auth";
 import { FormError, FormField } from "@/components/auth/auth-card";
+import { DevOtpHint } from "@/components/auth/dev-otp-hint";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { auth } from "@/lib/firebase/client";
@@ -113,6 +114,7 @@ export function PhoneSignupForm() {
           Un code à 6 chiffres a été envoyé par SMS au{" "}
           <span className="text-ink">{verifiedPhone}</span>.
         </p>
+        <DevOtpHint phone={verifiedPhone} />
         <FormField label="Code de vérification" htmlFor="otp">
           <Input
             id="otp"

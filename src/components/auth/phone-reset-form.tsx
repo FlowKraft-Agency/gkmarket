@@ -12,6 +12,7 @@ import {
   type User,
 } from "firebase/auth";
 import { FormError, FormField } from "@/components/auth/auth-card";
+import { DevOtpHint } from "@/components/auth/dev-otp-hint";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { auth } from "@/lib/firebase/client";
@@ -181,6 +182,7 @@ export function PhoneResetForm() {
         <p className="text-sm text-ink-muted">
           Un code à 6 chiffres a été envoyé par SMS à votre numéro.
         </p>
+        <DevOtpHint phone={normalizeTogoPhone(phone)} />
         <FormField label="Code de vérification" htmlFor="resetOtp">
           <Input
             id="resetOtp"
