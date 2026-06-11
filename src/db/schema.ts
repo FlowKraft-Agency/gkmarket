@@ -61,16 +61,27 @@ export const userArchives = pgTable("user_archives", {
     .defaultNow(),
 });
 
-// Casquette vendeur — les champs KYC complets (documents, RCCM, banque/Mobile Money)
-// arrivent à l'itération 2 (module Gestion des Vendeurs).
+// Casquette vendeur (itération 2). La demande est créée avec status=pending
+// puis validée/refusée par un admin. Les documents KYC sont stockés dans
+// Firebase Storage (chemins privés, consultation via le serveur uniquement).
 export const sellerProfiles = pgTable("seller_profiles", {
   id: uuid("id").defaultRandom().primaryKey(),
   userId: uuid("user_id")
     .notNull()
     .unique()
     .references(() => users.id, { onDelete: "cascade" }),
-  shopName: text("shop_name"),
+  shopName: text("shop_name").notNull(),
+  shopDescription: text("shop_description"),
+  city: text("city").notNull().default("Lomé"),
+  district: text("district"),
+  contactPhone: text("contact_phone"),
+  // N° RCCM (registre du commerce) — optionnel, beaucoup de vendeurs informels
+  rccm: text("rccm"),
+  idDocumentPath: text("id_document_path").notNull(),
+  rccmDocumentPath: text("rccm_document_path"),
   status: profileStatusEnum("status").notNull().default("pending"),
+  rejectionReason: text("rejection_reason"),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

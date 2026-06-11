@@ -75,6 +75,30 @@ Archivage intelligent plutôt qu'effacement total :
 redémarrages. Pour repartir de zéro : supprimer ce dossier **et** vider les
 tables utilisateurs de PostgreSQL (sinon données orphelines).
 
+**Prérequis** : l'émulateur Storage nécessite **Java** (installé sur ce poste :
+Temurin JRE 21 via `winget install EclipseAdoptium.Temurin.21.JRE`).
+
+## Documents KYC vendeurs (conception)
+
+- Stockage dans **Firebase Storage** (émulateur en local, port 9199 ; vrai
+  bucket en production — même code).
+- Chemins : `kyc/{firebaseUid}/...`. Les règles Storage (`storage.rules`)
+  n'autorisent que l'écriture par le propriétaire (5 Mo max) et **interdisent
+  toute lecture client**.
+- Consultation réservée aux admins via `/api/admin/kyc?path=...` (firebase-admin
+  contourne les règles côté serveur). Aucune URL publique ne mène aux documents.
+- La demande vendeur référence les chemins en base (`seller_profiles`) ; le
+  serveur vérifie que les chemins appartiennent bien au dossier du demandeur.
+
+## Administration
+
+- L'admin est un booléen `is_admin` sur `users` ; promotion manuelle en SQL :
+  `UPDATE users SET is_admin = true WHERE phone = '+228XXXXXXXX';`
+- Interface sous `/admin` (garde serveur dans le layout). File de validation
+  des vendeurs : approuver / refuser avec motif (visible par le demandeur,
+  re-soumission possible après refus).
+- Compte admin de test local : `admin@gkmarket.tg` / `admintest123`.
+
 ## Gestion PostgreSQL (résumé opérationnel)
 
 1. **Exécution** : conteneur Docker `postgres:16` via `docker-compose.yml` versionné — même version en local, staging et prod.

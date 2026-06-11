@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { DeleteAccount } from "@/components/auth/delete-account";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, LinkButton } from "@/components/ui/button";
 import { Card, CardSection } from "@/components/ui/card";
 import { getCurrentUser } from "@/lib/auth";
 
@@ -45,19 +45,29 @@ export default async function ComptePage() {
             <CardSection className="flex items-center justify-between p-4">
               <span className="font-medium">Vendeur</span>
               {user.sellerProfile ? (
-                <Badge
-                  variant={
-                    user.sellerProfile.status === "approved"
-                      ? "verified"
-                      : "neutral"
-                  }
+                <Link
+                  href="/compte/devenir-vendeur"
+                  className="flex items-center gap-2"
                 >
-                  {profileStatusLabel[user.sellerProfile.status]}
-                </Badge>
+                  <Badge
+                    variant={
+                      user.sellerProfile.status === "approved"
+                        ? "verified"
+                        : "neutral"
+                    }
+                  >
+                    {profileStatusLabel[user.sellerProfile.status]}
+                  </Badge>
+                  <span className="text-sm text-emerald">Détails →</span>
+                </Link>
               ) : (
-                <Button size="sm" variant="secondary" disabled>
-                  Bientôt disponible
-                </Button>
+                <LinkButton
+                  href="/compte/devenir-vendeur"
+                  size="sm"
+                  variant="secondary"
+                >
+                  Devenir vendeur
+                </LinkButton>
               )}
             </CardSection>
             <CardSection className="flex items-center justify-between p-4">
@@ -105,6 +115,24 @@ export default async function ComptePage() {
           </div>
         </Card>
       </div>
+
+      {user.isAdmin ? (
+        <Card className="mt-6 border-gold/30">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 className="font-display text-xl font-bold">
+                Administration
+              </h2>
+              <p className="mt-1 text-sm text-ink-muted">
+                Validation des vendeurs et gestion de la marketplace.
+              </p>
+            </div>
+            <LinkButton href="/admin" size="sm">
+              Ouvrir l&apos;admin
+            </LinkButton>
+          </div>
+        </Card>
+      ) : null}
 
       <div className="mt-6">
         <DeleteAccount />
