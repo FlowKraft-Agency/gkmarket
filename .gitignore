@@ -24,6 +24,13 @@
 .DS_Store
 *.pem
 
+# firebase emulator
+firebase-debug.log
+.firebase/
+
+# fichiers de verrou Office
+~$*
+
 # debug
 npm-debug.log*
 yarn-debug.log*
