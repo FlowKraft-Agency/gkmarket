@@ -11,7 +11,11 @@ const MAX_AMOUNT = 5_000_000;
 
 // En local, l'agrégateur de paiement est simulé : la recharge crédite
 // immédiatement. En production : intégration CinetPay/Semoa (Flooz, Tmoney…).
-const SIMULATED = !!process.env.FIREBASE_AUTH_EMULATOR_HOST;
+// DEMO_MODE=1 force aussi la simulation sur un déploiement de démonstration
+// (staging Vercel sans émulateur), pour rendre le cycle Escrow démontrable
+// sans agrégateur réel.
+const SIMULATED =
+  !!process.env.FIREBASE_AUTH_EMULATOR_HOST || process.env.DEMO_MODE === "1";
 
 export async function rechargeWallet(
   amountFcfa: number,
