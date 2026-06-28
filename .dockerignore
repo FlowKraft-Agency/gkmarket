@@ -1,0 +1,15 @@
+node_modules
+.next
+.git
+.github
+.vercel
+.firebase-emulator
+.claude
+npm-debug.log*
+Dockerfile
+.dockerignore
+docker-compose*.yml
+.env
+.env.*
+!.env.example
+*.log

@@ -1,0 +1,80 @@
+# Déploiement production (VPS) — PostgreSQL + app Next.js + Caddy (TLS auto).
+# Lancement : voir docs/DEPLOIEMENT.md. Variables dans .env (non commité).
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: deallome-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: deallome
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD requis dans .env}
+      POSTGRES_DB: deallome
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U deallome -d deallome"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [internal]
+    # Pas de `ports:` → Postgres reste sur le réseau interne, jamais exposé.
+
+  app:
+    container_name: deallome-app
+    build:
+      context: .
+      target: runner
+      args:
+        NEXT_PUBLIC_FIREBASE_API_KEY: ${NEXT_PUBLIC_FIREBASE_API_KEY}
+        NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}
+        NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${NEXT_PUBLIC_FIREBASE_PROJECT_ID}
+        NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET}
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://deallome:${POSTGRES_PASSWORD}@db:5432/deallome
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID}
+      FIREBASE_STORAGE_BUCKET: ${FIREBASE_STORAGE_BUCKET}
+      FIREBASE_SERVICE_ACCOUNT: ${FIREBASE_SERVICE_ACCOUNT}
+      CRON_SECRET: ${CRON_SECRET}
+      EMAIL_FROM: ${EMAIL_FROM:-no-reply@deallome.com}
+      DEMO_MODE: "1"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [internal]
+
+  # Migrations Drizzle — one-shot : `docker compose --profile tools run --rm migrator`
+  migrator:
+    profiles: ["tools"]
+    build:
+      context: .
+      target: migrator
+    environment:
+      DATABASE_URL: postgres://deallome:${POSTGRES_PASSWORD}@db:5432/deallome
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [internal]
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: deallome-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [app]
+    networks: [internal]
+
+networks:
+  internal:
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

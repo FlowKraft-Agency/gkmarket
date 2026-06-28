@@ -1,0 +1,11 @@
+# Reverse-proxy TLS automatique (Let's Encrypt) pour Deal Lomé.
+# www → redirection vers le domaine apex.
+
+www.deallome.com {
+	redir https://deallome.com{uri} permanent
+}
+
+deallome.com {
+	encode gzip zstd
+	reverse_proxy app:3000
+}
